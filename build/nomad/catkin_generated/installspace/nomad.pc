@@ -1,0 +1,8 @@
+prefix=/home/edison/nomad_ws/install
+
+Name: nomad
+Description: Description of nomad
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/edison/nomad_ws/install/lib 
+Requires: 

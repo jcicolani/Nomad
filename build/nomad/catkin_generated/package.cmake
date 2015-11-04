@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "nomad")
+set(nomad_MAINTAINER "edison <edison@todo.todo>")
+set(nomad_DEPRECATED "")
+set(nomad_VERSION "0.0.0")
+set(nomad_BUILD_DEPENDS "rospy" "std.msgs")
+set(nomad_RUN_DEPENDS "rospy" "std.msgs")
+set(nomad_BUILDTOOL_DEPENDS "catkin")

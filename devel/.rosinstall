@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/edison/nomad_ws/devel/setup.sh
