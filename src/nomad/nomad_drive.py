@@ -14,8 +14,8 @@ def drive_wheels(msg):
 	r = (x-z)/2
 	l = (x+z)/2
 
-	m1 = (l * 64) + 64
-	m2 = (r * 64) + 64
+	m2 = (l * 64) + 64
+	m1 = (r * 64) + 64
 
 	print str(m1) + " " + str(m2)
 	roboclaw.DriveM1(int(m1))

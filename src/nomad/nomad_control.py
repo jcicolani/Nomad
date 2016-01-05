@@ -7,7 +7,7 @@ from sensor_msgs.msg import Joy
 def joyCommand(data):
 	t = Twist()
 	t.linear.x = data.axes[1]
-	t.linear.z = data.axes[0]
+	t.angular.z = data.axes[0]
 
 	pub.publish(t)
 

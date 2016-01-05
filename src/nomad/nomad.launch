@@ -1,0 +1,5 @@
+<launch>
+	<node name="joy" pkg="joy" type="joy_node"/>
+	<node name="nomad_control" pkg="nomad" type="nomad_control.py"/>
+	<node name="nomad_drive" pkg="nomad" type="nomad_drive.py" output="screen"/>
+</launch>
