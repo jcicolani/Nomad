@@ -1,0 +1,2 @@
+nomad
+-DCATKIN_DEVEL_PREFIX=/home/nomad/nomad_ws/devel -DCMAKE_INSTALL_PREFIX=/home/nomad/nomad_ws/install -G Unix Makefiles

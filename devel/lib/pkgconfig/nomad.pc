@@ -1,0 +1,8 @@
+prefix=/home/nomad/nomad_ws/devel
+
+Name: nomad
+Description: Description of nomad
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/nomad/nomad_ws/devel/lib 
+Requires: 

@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/nomad/nomad_ws/devel/setup.sh
