@@ -8,7 +8,11 @@
 
 # since this file is sourced either use the provided _CATKIN_SETUP_DIR
 # or fall back to the destination set at configure time
+<<<<<<< HEAD
 : ${_CATKIN_SETUP_DIR:=/home/nomad/nomad_ws/devel}
+=======
+: ${_CATKIN_SETUP_DIR:=/home/edison/nomad_ws/devel}
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 _SETUP_UTIL="$_CATKIN_SETUP_DIR/_setup_util.py"
 unset _CATKIN_SETUP_DIR
 

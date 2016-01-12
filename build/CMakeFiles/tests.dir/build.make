@@ -35,10 +35,17 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
+<<<<<<< HEAD
 CMAKE_SOURCE_DIR = /home/nomad/nomad_ws/src
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/nomad/nomad_ws/build
+=======
+CMAKE_SOURCE_DIR = /home/edison/nomad_ws/src
+
+# The top-level build directory on which CMake was run.
+CMAKE_BINARY_DIR = /home/edison/nomad_ws/build
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 
 # Utility rule file for tests.
 
@@ -60,6 +67,10 @@ CMakeFiles/tests.dir/clean:
 .PHONY : CMakeFiles/tests.dir/clean
 
 CMakeFiles/tests.dir/depend:
+<<<<<<< HEAD
 	cd /home/nomad/nomad_ws/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nomad/nomad_ws/src /home/nomad/nomad_ws/src /home/nomad/nomad_ws/build /home/nomad/nomad_ws/build /home/nomad/nomad_ws/build/CMakeFiles/tests.dir/DependInfo.cmake --color=$(COLOR)
+=======
+	cd /home/edison/nomad_ws/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/edison/nomad_ws/src /home/edison/nomad_ws/src /home/edison/nomad_ws/build /home/edison/nomad_ws/build /home/edison/nomad_ws/build/CMakeFiles/tests.dir/DependInfo.cmake --color=$(COLOR)
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 .PHONY : CMakeFiles/tests.dir/depend
 

@@ -6,11 +6,6 @@ SET(CMAKE_DEPENDS_LANGUAGES
 # Preprocessor definitions for this target.
 SET(CMAKE_TARGET_DEFINITIONS
   "ROS_BUILD_SHARED_LIBS=1"
-<<<<<<< HEAD
-  "ROS_PACKAGE_NAME=\"nomad\""
-  "ROSCONSOLE_BACKEND_LOG4CXX"
-=======
->>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
   )
 
 # Targets to which this target links.
@@ -19,11 +14,7 @@ SET(CMAKE_TARGET_LINKED_INFO_FILES
 
 # The include file search paths:
 SET(CMAKE_C_TARGET_INCLUDE_PATH
-<<<<<<< HEAD
-  "/opt/ros/indigo/include"
-=======
   "/opt/ros/jade/include"
->>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
   )
 SET(CMAKE_CXX_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})
 SET(CMAKE_Fortran_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /home/nomad/nomad_ws/build/CMakeFiles/clean_test_results.dir
 /home/nomad/nomad_ws/build/CMakeFiles/clean_test_results_Project.dir
 /home/nomad/nomad_ws/build/CMakeFiles/download_extra_data.dir
@@ -15,3 +16,17 @@
 /home/nomad/nomad_ws/build/nomad/CMakeFiles/std_msgs_generate_messages_lisp.dir
 /home/nomad/nomad_ws/build/nomad/CMakeFiles/std_msgs_generate_messages_py.dir
 /home/nomad/nomad_ws/build/CMakeFiles/tests.dir
+=======
+/home/edison/nomad_ws/build/CMakeFiles/clean_test_results.dir
+/home/edison/nomad_ws/build/CMakeFiles/clean_test_results_Project.dir
+/home/edison/nomad_ws/build/CMakeFiles/download_extra_data.dir
+/home/edison/nomad_ws/build/CMakeFiles/doxygen.dir
+/home/edison/nomad_ws/build/gtest/CMakeFiles/gtest.dir
+/home/edison/nomad_ws/build/gtest/CMakeFiles/gtest_main.dir
+/home/edison/nomad_ws/build/CMakeFiles/run_tests.dir
+/home/edison/nomad_ws/build/nomad/CMakeFiles/std_msgs_generate_messages_cpp.dir
+/home/edison/nomad_ws/build/nomad/CMakeFiles/std_msgs_generate_messages_eus.dir
+/home/edison/nomad_ws/build/nomad/CMakeFiles/std_msgs_generate_messages_lisp.dir
+/home/edison/nomad_ws/build/nomad/CMakeFiles/std_msgs_generate_messages_py.dir
+/home/edison/nomad_ws/build/CMakeFiles/tests.dir
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648

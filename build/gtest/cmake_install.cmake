@@ -2,7 +2,11 @@
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
+<<<<<<< HEAD
   SET(CMAKE_INSTALL_PREFIX "/home/nomad/nomad_ws/install")
+=======
+  SET(CMAKE_INSTALL_PREFIX "/home/edison/nomad_ws/install")
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

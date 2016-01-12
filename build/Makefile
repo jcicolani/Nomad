@@ -39,10 +39,17 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
+<<<<<<< HEAD
 CMAKE_SOURCE_DIR = /home/nomad/nomad_ws/src
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/nomad/nomad_ws/build
+=======
+CMAKE_SOURCE_DIR = /home/edison/nomad_ws/src
+
+# The top-level build directory on which CMake was run.
+CMAKE_BINARY_DIR = /home/edison/nomad_ws/build
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -120,9 +127,15 @@ test/fast: test
 
 # The main all target
 all: cmake_check_build_system
+<<<<<<< HEAD
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/nomad/nomad_ws/build/CMakeFiles /home/nomad/nomad_ws/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/nomad/nomad_ws/build/CMakeFiles 0
+=======
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/edison/nomad_ws/build/CMakeFiles /home/edison/nomad_ws/build/CMakeFiles/progress.marks
+	$(MAKE) -f CMakeFiles/Makefile2 all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/edison/nomad_ws/build/CMakeFiles 0
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 .PHONY : all
 
 # The main clean target
@@ -254,6 +267,7 @@ gtest_main/fast:
 .PHONY : gtest_main/fast
 
 #=============================================================================
+<<<<<<< HEAD
 # Target rules for targets named roscpp_generate_messages_cpp
 
 # Build rule for target.
@@ -332,6 +346,8 @@ rosgraph_msgs_generate_messages_py/fast:
 .PHONY : rosgraph_msgs_generate_messages_py/fast
 
 #=============================================================================
+=======
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 # Target rules for targets named std_msgs_generate_messages_cpp
 
 # Build rule for target.
@@ -345,6 +361,22 @@ std_msgs_generate_messages_cpp/fast:
 .PHONY : std_msgs_generate_messages_cpp/fast
 
 #=============================================================================
+<<<<<<< HEAD
+=======
+# Target rules for targets named std_msgs_generate_messages_eus
+
+# Build rule for target.
+std_msgs_generate_messages_eus: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 std_msgs_generate_messages_eus
+.PHONY : std_msgs_generate_messages_eus
+
+# fast build rule for target.
+std_msgs_generate_messages_eus/fast:
+	$(MAKE) -f nomad/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make nomad/CMakeFiles/std_msgs_generate_messages_eus.dir/build
+.PHONY : std_msgs_generate_messages_eus/fast
+
+#=============================================================================
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 # Target rules for targets named std_msgs_generate_messages_lisp
 
 # Build rule for target.
@@ -391,6 +423,7 @@ help:
 	@echo "... tests"
 	@echo "... gtest"
 	@echo "... gtest_main"
+<<<<<<< HEAD
 	@echo "... roscpp_generate_messages_cpp"
 	@echo "... roscpp_generate_messages_lisp"
 	@echo "... roscpp_generate_messages_py"
@@ -398,6 +431,10 @@ help:
 	@echo "... rosgraph_msgs_generate_messages_lisp"
 	@echo "... rosgraph_msgs_generate_messages_py"
 	@echo "... std_msgs_generate_messages_cpp"
+=======
+	@echo "... std_msgs_generate_messages_cpp"
+	@echo "... std_msgs_generate_messages_eus"
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 	@echo "... std_msgs_generate_messages_lisp"
 	@echo "... std_msgs_generate_messages_py"
 .PHONY : help

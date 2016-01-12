@@ -53,9 +53,15 @@ IS_WINDOWS = (system == 'Windows')
 ENV_VAR_SUBFOLDERS = {
     'CMAKE_PREFIX_PATH': '',
     'CPATH': 'include',
+<<<<<<< HEAD
     'LD_LIBRARY_PATH' if not IS_DARWIN else 'DYLD_LIBRARY_PATH': ['lib', os.path.join('lib', 'arm-linux-gnueabihf')],
     'PATH': 'bin',
     'PKG_CONFIG_PATH': [os.path.join('lib', 'pkgconfig'), os.path.join('lib', 'arm-linux-gnueabihf', 'pkgconfig')],
+=======
+    'LD_LIBRARY_PATH' if not IS_DARWIN else 'DYLD_LIBRARY_PATH': ['lib', os.path.join('lib', 'i386-linux-gnu')],
+    'PATH': 'bin',
+    'PKG_CONFIG_PATH': [os.path.join('lib', 'pkgconfig'), os.path.join('lib', 'i386-linux-gnu', 'pkgconfig')],
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
     'PYTHONPATH': 'lib/python2.7/dist-packages',
 }
 
@@ -260,7 +266,11 @@ if __name__ == '__main__':
             sys.exit(1)
 
         # environment at generation time
+<<<<<<< HEAD
         CMAKE_PREFIX_PATH = '/home/nomad/nomad_ws/devel;/opt/ros/indigo'.split(';')
+=======
+        CMAKE_PREFIX_PATH = '/home/edison/nomad_ws/devel;/opt/ros/jade'.split(';')
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
         # prepend current workspace if not already part of CPP
         base_path = os.path.dirname(__file__)
         if base_path not in CMAKE_PREFIX_PATH:

@@ -1,7 +1,11 @@
 SET(CMAKE_C_COMPILER "/usr/bin/gcc")
 SET(CMAKE_C_COMPILER_ARG1 "")
 SET(CMAKE_C_COMPILER_ID "GNU")
+<<<<<<< HEAD
 SET(CMAKE_C_COMPILER_VERSION "4.6.3")
+=======
+SET(CMAKE_C_COMPILER_VERSION "4.7.2")
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 SET(CMAKE_C_PLATFORM_ID "Linux")
 
 SET(CMAKE_AR "/usr/bin/ar")
@@ -29,7 +33,11 @@ SET(CMAKE_C_LINKER_PREFERENCE 10)
 # Save compiler ABI information.
 SET(CMAKE_C_SIZEOF_DATA_PTR "4")
 SET(CMAKE_C_COMPILER_ABI "ELF")
+<<<<<<< HEAD
 SET(CMAKE_C_LIBRARY_ARCHITECTURE "arm-linux-gnueabihf")
+=======
+SET(CMAKE_C_LIBRARY_ARCHITECTURE "i386-linux-gnu")
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 
 IF(CMAKE_C_SIZEOF_DATA_PTR)
   SET(CMAKE_SIZEOF_VOID_P "${CMAKE_C_SIZEOF_DATA_PTR}")
@@ -40,14 +48,22 @@ IF(CMAKE_C_COMPILER_ABI)
 ENDIF(CMAKE_C_COMPILER_ABI)
 
 IF(CMAKE_C_LIBRARY_ARCHITECTURE)
+<<<<<<< HEAD
   SET(CMAKE_LIBRARY_ARCHITECTURE "arm-linux-gnueabihf")
+=======
+  SET(CMAKE_LIBRARY_ARCHITECTURE "i386-linux-gnu")
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 ENDIF()
 
 SET(CMAKE_C_HAS_ISYSROOT "")
 
 
 SET(CMAKE_C_IMPLICIT_LINK_LIBRARIES "c")
+<<<<<<< HEAD
 SET(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "/usr/lib/gcc/arm-linux-gnueabihf/4.6;/usr/lib/arm-linux-gnueabihf;/usr/lib;/lib/arm-linux-gnueabihf")
+=======
+SET(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "/usr/lib/gcc/i486-linux-gnu/4.7;/usr/lib/i386-linux-gnu;/usr/lib;/lib/i386-linux-gnu;/lib")
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 
 
 

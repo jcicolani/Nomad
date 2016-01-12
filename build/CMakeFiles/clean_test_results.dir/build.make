@@ -35,10 +35,17 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
+<<<<<<< HEAD
 CMAKE_SOURCE_DIR = /home/nomad/nomad_ws/src
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/nomad/nomad_ws/build
+=======
+CMAKE_SOURCE_DIR = /home/edison/nomad_ws/src
+
+# The top-level build directory on which CMake was run.
+CMAKE_BINARY_DIR = /home/edison/nomad_ws/build
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 
 # Utility rule file for clean_test_results.
 
@@ -46,7 +53,11 @@ CMAKE_BINARY_DIR = /home/nomad/nomad_ws/build
 include CMakeFiles/clean_test_results.dir/progress.make
 
 CMakeFiles/clean_test_results:
+<<<<<<< HEAD
 	/usr/bin/python /opt/ros/indigo/share/catkin/cmake/test/remove_test_results.py /home/nomad/nomad_ws/build/test_results
+=======
+	/usr/bin/python /opt/ros/jade/share/catkin/cmake/test/remove_test_results.py /home/edison/nomad_ws/build/test_results
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 
 clean_test_results: CMakeFiles/clean_test_results
 clean_test_results: CMakeFiles/clean_test_results.dir/build.make
@@ -61,6 +72,10 @@ CMakeFiles/clean_test_results.dir/clean:
 .PHONY : CMakeFiles/clean_test_results.dir/clean
 
 CMakeFiles/clean_test_results.dir/depend:
+<<<<<<< HEAD
 	cd /home/nomad/nomad_ws/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nomad/nomad_ws/src /home/nomad/nomad_ws/src /home/nomad/nomad_ws/build /home/nomad/nomad_ws/build /home/nomad/nomad_ws/build/CMakeFiles/clean_test_results.dir/DependInfo.cmake --color=$(COLOR)
+=======
+	cd /home/edison/nomad_ws/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/edison/nomad_ws/src /home/edison/nomad_ws/src /home/edison/nomad_ws/build /home/edison/nomad_ws/build /home/edison/nomad_ws/build/CMakeFiles/clean_test_results.dir/DependInfo.cmake --color=$(COLOR)
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 .PHONY : CMakeFiles/clean_test_results.dir/depend
 

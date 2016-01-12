@@ -67,14 +67,23 @@ set(nomad_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("TRUE" STREQUAL "TRUE")
+<<<<<<< HEAD
   set(nomad_SOURCE_PREFIX /home/nomad/nomad_ws/src/nomad)
   set(nomad_DEVEL_PREFIX /home/nomad/nomad_ws/devel)
+=======
+  set(nomad_SOURCE_PREFIX /home/edison/nomad_ws/src/nomad)
+  set(nomad_DEVEL_PREFIX /home/edison/nomad_ws/devel)
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
   set(nomad_INSTALL_PREFIX "")
   set(nomad_PREFIX ${nomad_DEVEL_PREFIX})
 else()
   set(nomad_SOURCE_PREFIX "")
   set(nomad_DEVEL_PREFIX "")
+<<<<<<< HEAD
   set(nomad_INSTALL_PREFIX /home/nomad/nomad_ws/install)
+=======
+  set(nomad_INSTALL_PREFIX /home/edison/nomad_ws/install)
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
   set(nomad_PREFIX ${nomad_INSTALL_PREFIX})
 endif()
 
@@ -100,10 +109,17 @@ if(NOT " " STREQUAL " ")
     elseif("${idir} " STREQUAL "include ")
       get_filename_component(include "${nomad_DIR}/../../../include" ABSOLUTE)
       if(NOT IS_DIRECTORY ${include})
+<<<<<<< HEAD
         message(FATAL_ERROR "Project 'nomad' specifies '${idir}' as an include dir, which is not found.  It does not exist in '${include}'.  Ask the maintainer 'nomad <jcicolani@gmail.com>' to fix it.")
       endif()
     else()
       message(FATAL_ERROR "Project 'nomad' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/home/nomad/nomad_ws/src/nomad/${idir}'.  Ask the maintainer 'nomad <jcicolani@gmail.com>' to fix it.")
+=======
+        message(FATAL_ERROR "Project 'nomad' specifies '${idir}' as an include dir, which is not found.  It does not exist in '${include}'.  Ask the maintainer 'edison <edison@todo.todo>' to fix it.")
+      endif()
+    else()
+      message(FATAL_ERROR "Project 'nomad' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/home/edison/nomad_ws/src/nomad/${idir}'.  Ask the maintainer 'edison <edison@todo.todo>' to fix it.")
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
     endif()
     _list_append_unique(nomad_INCLUDE_DIRS ${include})
   endforeach()
@@ -122,7 +138,11 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
+<<<<<<< HEAD
     foreach(path /home/nomad/nomad_ws/devel/lib;/home/nomad/nomad_ws/devel/lib;/opt/ros/indigo/lib)
+=======
+    foreach(path /home/edison/nomad_ws/devel/lib;/home/edison/nomad_ws/devel/lib;/opt/ros/jade/lib)
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
