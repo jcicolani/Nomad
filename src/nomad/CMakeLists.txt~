@@ -1,11 +1,18 @@
+<<<<<<< HEAD
 cmake_minimum_required(VERSION 2.8.3)
+=======
+cmake_minimum_required(VERSION 1.8.3)
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 project(nomad)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+<<<<<<< HEAD
   roscpp
+=======
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
   rospy
   std_msgs
 )
@@ -67,7 +74,11 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
+<<<<<<< HEAD
 #   std_msgs
+=======
+#   std_msgs  # Or other packages containing msgs
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 # )
 
 ################################################
@@ -102,7 +113,11 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES nomad
+<<<<<<< HEAD
 #  CATKIN_DEPENDS roscpp rospy std_msgs
+=======
+#  CATKIN_DEPENDS rospy std.msgs
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 #  DEPENDS system_lib
 )
 

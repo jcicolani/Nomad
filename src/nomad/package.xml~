@@ -7,12 +7,22 @@
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+<<<<<<< HEAD
   <maintainer email="jcicolani@gmail.com">nomad</maintainer>
+=======
+  <maintainer email="edison@todo.todo">edison</maintainer>
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
+
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+<<<<<<< HEAD
   <license>BSD</license>
+=======
+  <license>TODO</license>
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
+
 
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
@@ -24,7 +34,11 @@
   <!-- Authors do not have to be maintianers, but could be -->
   <!-- Example: -->
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+<<<<<<< HEAD
   <author email="jcicolani@gmail.com">Jeff Cicolani</author>
+=======
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
+
 
   <!-- The *_depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->
@@ -38,12 +52,19 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+<<<<<<< HEAD
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
+=======
+  <build_depend>rospy</build_depend>
+  <build_depend>std.msgs</build_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>std.msgs</run_depend>
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
 
 
   <!-- The export tag contains other, unspecified, tags -->
@@ -51,5 +72,8 @@
     <!-- Other tools can request additional information be placed here -->
 
   </export>
+<<<<<<< HEAD
 </package>
-
+=======
+</package>
+>>>>>>> c894deaf8f51fc464f792dfd76aec936b4ce0648
