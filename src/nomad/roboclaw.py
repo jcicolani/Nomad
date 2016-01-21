@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+import random
 import serial
 import struct
 import time
+
+_trystimeout = 3
 
 #Command Enums
 
@@ -75,6 +79,8 @@ class Cmd():
 	SETM2DEFAULTACCEL = 69
 	SETPINFUNCTIONS = 74
 	GETPINFUNCTIONS = 75
+	SETDEADBAND = 76
+	GETDEADBAND = 77
 	RESTOREDEFAULTS = 80
 	GETTEMP = 82
 	GETTEMP2 = 83
@@ -96,27 +102,41 @@ class Cmd():
 			
 #Private Functions
 
+def crc_clear():
+	global _crc
+	_crc = 0
+	return
+	
+def crc_update(data):
+	global _crc
+	_crc = _crc ^ (data << 8)
+	for bit in range(0, 8):
+		if (_crc&0x8000)  == 0x8000:
+			_crc = ((_crc << 1) ^ 0x1021)
+		else:
+			_crc = _crc << 1
+	return
+
 def _sendcommand(address,command):
-	global _checksum
-	_checksum = address
+	crc_clear()
+	crc_update(address)
 	port.write(chr(address))
-	_checksum += command
+	crc_update(command)
 	port.write(chr(command))
 	return
 
-def _readchecksumbyte():
-	data = port.read(1)
-	if len(data):
-		val = ord(data);
-		return (1,val)	
+def _readchecksumword():
+	data = port.read(2)
+	if len(data)==2:
+		crc = (ord(data[0])<<8) | ord(data[1])
+		return (1,crc)	
 	return (0,0)
 	
 def _readbyte():
-	global _checksum
 	data = port.read(1)
 	if len(data):
 		val = ord(data)
-		_checksum += val
+		crc_update(val)
 		return (1,val)	
 	return (0,0)
 	
@@ -144,52 +164,44 @@ def _readslong():
 	val = _readlong()
 	if val[0]:
 		if val[1]&0x80000000:
-			val[1] = val[1]-0x100000000
-	return val	
+			return (val[0],val[1]-0x100000000)
+		return (val[0],val[1])
+	return (0,0)
 
 def _writebyte(val):
-	global _checksum
-	_checksum += val
-	return port.write(struct.pack('>B',val))
-def _writesbyte(val):
-	global _checksum
-	_checksum += val
-	return port.write(struct.pack('>b',val))
-def _writeword(val):
-	global _checksum
-	_checksum += val
-	_checksum += (val>>8)&0xFF
-	return port.write(struct.pack('>H',val))
-def _writesword(val):
-	global _checksum
-	_checksum += val
-	_checksum += (val>>8)&0xFF
-	return port.write(struct.pack('>h',val))
-def _writelong(val):
-	global _checksum
-	_checksum += val
-	_checksum += (val>>8)&0xFF
-	_checksum += (val>>16)&0xFF
-	_checksum += (val>>24)&0xFF
-	return port.write(struct.pack('>L',val))
-def _writeslong(val):
-	global _checksum
-	_checksum += val
-	_checksum += (val>>8)&0xFF
-	_checksum += (val>>16)&0xFF
-	_checksum += (val>>24)&0xFF
-	return port.write(struct.pack('>l',val))
+	crc_update(val&0xFF)
+	port.write(chr(val&0xFF))
 
-def _read1(cmd):
-	global _checksum
-	trys = 2
+def _writesbyte(val):
+	_writebyte(val)
+
+def _writeword(val):
+	_writebyte((val>>8)&0xFF)
+	_writebyte(val&0xFF)
+	
+def _writesword(val):
+	_writeword(val)
+
+def _writelong(val):
+	_writebyte((val>>24)&0xFF)
+	_writebyte((val>>16)&0xFF)
+	_writebyte((val>>8)&0xFF)
+	_writebyte(val&0xFF)
+
+def _writeslong(val):
+	_writelong(val)
+
+def _read1(address,cmd):
+	global _crc
+	trys = _trystimeout
 	while 1:
-		_sendcommand(128,cmd)
+		port.flushInput()
+		_sendcommand(address,cmd)
 		val1 = _readbyte()
 		if val1[0]:
-			crc = _readchecksumbyte()
+			crc = _readchecksumword()
 			if crc[0]:
-				if _checksum&0x7F!=crc[1]&0x7F:
+				if _crc&0xFFFF!=crc[1]&0xFFFF:
 					return (0,0)
 				return (1,val1[1])
 		trys-=1
@@ -197,16 +209,17 @@ def _read1(cmd):
 			break
 	return (0,0)
 
-def _read2(cmd):
-	global _checksum
-	trys = 2
+def _read2(address,cmd):
+	global _crc
+	trys = _trystimeout
 	while 1:
-		_sendcommand(128,cmd)
+		port.flushInput()
+		_sendcommand(address,cmd)
 		val1 = _readword()
 		if val1[0]:
-			crc = _readchecksumbyte()
+			crc = _readchecksumword()
 			if crc[0]:
-				if _checksum&0x7F!=crc[1]&0x7F:
+				if _crc&0xFFFF!=crc[1]&0xFFFF:
 					return (0,0)
 				return (1,val1[1])
 		trys-=1
@@ -214,16 +227,17 @@ def _read2(cmd):
 			break
 	return (0,0)
 
-def _read4(cmd):
-	global _checksum
-	trys = 2
+def _read4(address,cmd):
+	global _crc
+	trys = _trystimeout
 	while 1:
-		_sendcommand(128,cmd)
+		port.flushInput()
+		_sendcommand(address,cmd)
 		val1 = _readlong()
 		if val1[0]:
-			crc = _readchecksumbyte()
+			crc = _readchecksumword()
 			if crc[0]:
-				if _checksum&0x7F!=crc[1]&0x7F:
+				if _crc&0xFFFF!=crc[1]&0xFFFF:
 					return (0,0)
 				return (1,val1[1])
 		trys-=1
@@ -231,18 +245,19 @@ def _read4(cmd):
 			break
 	return (0,0)
 
-def _read4_1(cmd):
-	global _checksum
-	trys = 2
+def _read4_1(address,cmd):
+	global _crc
+	trys = _trystimeout
 	while 1:
-		_sendcommand(128,cmd)
+		port.flushInput()
+		_sendcommand(address,cmd)
 		val1 = _readslong()
 		if val1[0]:
 			val2 = _readbyte()
 			if val2[0]:
-				crc = _readchecksumbyte()
+				crc = _readchecksumword()
 				if crc[0]:
-					if _checksum&0x7F!=crc[1]&0x7F:
+					if _crc&0xFFFF!=crc[1]&0xFFFF:
 						return (0,0)
 					return (1,val1[1],val2[1])
 		trys-=1
@@ -250,15 +265,16 @@ def _read4_1(cmd):
 			break
 	return (0,0)
 
-def _read_n(cmd,args):
-	global _checksum
-	trys = 3
+def _read_n(address,cmd,args):
+	global _crc
+	trys = _trystimeout
 	while 1:
+		port.flushInput()
 		trys-=1
 		if trys==0:
 			break
 		failed=False
-		_sendcommand(128,cmd)
+		_sendcommand(address,cmd)
 		data = [1,]
 		for i in range(0,args):
 			val = _readlong()
@@ -268,287 +284,542 @@ def _read_n(cmd,args):
 			data.append(val[1])
 		if failed:
 			continue
-		crc = _readchecksumbyte()
+		crc = _readchecksumword()
 		if crc[0]:
-			if crc[1]&0x7F==_checksum&0x7F:
+			if _crc&0xFFFF==crc[1]&0xFFFF:
 				return (data);
 	return (0,0,0,0,0)
 
 def _writechecksum():
-	global _checksum
-	_writebyte(_checksum&0x7F | 0x80)
+	global _crc
+	_writeword(_crc&0xFFFF)
 	val = _readbyte()
 	if val[0]:
 		return True
 	return False
 
+def _write0(address,cmd):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write1(address,cmd,val):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writebyte(val)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write111(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writebyte(val1)
+		_writebyte(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write111(address,cmd,val1,val2,val3):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writebyte(val1)
+		_writebyte(val2)
+		_writebyte(val3)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write2(address,cmd,val):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writeword(val)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS2(address,cmd,val):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writesword(val)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write22(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writeword(val1)
+		_writeword(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS22(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writesword(val1)
+		_writeword(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS2S2(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writesword(val1)
+		_writesword(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS24(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writesword(val1)
+		_writelong(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS24S24(address,cmd,val1,val2,val3,val4):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writesword(val1)
+		_writelong(val2)
+		_writesword(val3)
+		_writelong(val4)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4(address,cmd,val):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS4(address,cmd,val):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writeslong(val)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write44(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writelong(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4S4(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writeslong(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS4S4(address,cmd,val1,val2):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writeslong(val1)
+		_writeslong(val2)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write441(address,cmd,val1,val2,val3):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writelong(val2)
+		_writebyte(val3)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS441(address,cmd,val1,val2,val3):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writeslong(val1)
+		_writelong(val2)
+		_writebyte(val3)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4S4S4(address,cmd,val1,val2,val3):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writeslong(val2)
+		_writeslong(val3)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4S441(address,cmd,val1,val2,val3,val4):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writeslong(val2)
+		_writelong(val3)
+		_writebyte(val4)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4444(address,cmd,val1,val2,val3,val4):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writelong(val2)
+		_writelong(val3)
+		_writelong(val4)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4S44S4(address,cmd,val1,val2,val3,val4):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writeslong(val2)
+		_writelong(val3)
+		_writeslong(val4)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write44441(address,cmd,val1,val2,val3,val4,val5):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writelong(val2)
+		_writelong(val3)
+		_writelong(val4)
+		_writebyte(val5)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _writeS44S441(address,cmd,val1,val2,val3,val4,val5):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writeslong(val1)
+		_writelong(val2)
+		_writeslong(val3)
+		_writelong(val4)
+		_writebyte(val5)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4S44S441(address,cmd,val1,val2,val3,val4,val5,val6):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writeslong(val2)
+		_writelong(val3)
+		_writeslong(val4)
+		_writelong(val5)
+		_writebyte(val6)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4S444S441(address,cmd,val1,val2,val3,val4,val5,val6,val7):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writeslong(val2)
+		_writelong(val3)
+		_writelong(val4)
+		_writeslong(val5)
+		_writelong(val6)
+		_writebyte(val7)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write4444444(address,cmd,val1,val2,val3,val4,val5,val6,val7):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writelong(val2)
+		_writelong(val3)
+		_writelong(val4)
+		_writelong(val5)
+		_writelong(val6)
+		_writelong(val7)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
+def _write444444441(address,cmd,val1,val2,val3,val4,val5,val6,val7,val8,val9):
+	trys=_trystimeout
+	while trys:
+		_sendcommand(address,cmd)
+		_writelong(val1)
+		_writelong(val2)
+		_writelong(val3)
+		_writelong(val4)
+		_writelong(val5)
+		_writelong(val6)
+		_writelong(val7)
+		_writelong(val8)
+		_writebyte(val9)
+		if _writechecksum():
+			return True
+		trys=trys-1
+	return False
+
 #User accessible functions
 
-def M1Forward(val):
-	_sendcommand(128,Cmd.M1FORWARD)
-	_writebyte(val)
-	return _writechecksum()
+def SendRandomData(cnt):
+	for i in range(0,cnt):
+		byte = random.getrandbits(8)
+		port.write(chr(byte))
+	return
 
-def M1Backward(val):
-	_sendcommand(128,Cmd.M1BACKWARD)
-	_writebyte(val)
-	return _writechecksum()
+def ForwardM1(address,val):
+	return _write1(address,Cmd.M1FORWARD,val)
 
-def SetMinMainBattery(val):
-	_sendcommand(128,Cmd.SETMINMB)
-	_writebyte(val)
-	return _writechecksum()
+def BackwardM1(address,val):
+	return _write1(address,Cmd.M1BACKWARD,val)
 
-def SetMaxMainBattery(val):
-	_sendcommand(128,Cmd.SETMAXMB)
-	_writebyte(val)
-	return _writechecksum()
+def SetMinVoltageMainBattery(address,val):
+	return _write1(address,Cmd.SETMINMB,val)
 
-def M2Forward(val):
-	_sendcommand(128,Cmd.M2FORWARD)
-	_writebyte(val)
-	return _writechecksum()
+def SetMaxVoltageMainBattery(address,val):
+	return _write1(address,Cmd.SETMAXMB,val)
 
-def M2Backward(val):
-	_sendcommand(128,Cmd.M2BACKWARD)
-	_writebyte(val)
-	return _writechecksum()
+def ForwardM2(address,val):
+	return _write1(address,Cmd.M2FORWARD,val)
 
-def DriveM1(val):
-	_sendcommand(128,Cmd.M17BIT)
-	_writebyte(val)
-	return _writechecksum()
+def BackwardM2(address,val):
+	return _write1(address,Cmd.M2BACKWARD,val)
 
-def DriveM2(val):
-	_sendcommand(128,Cmd.M27BIT)
-	_writebyte(val)
-	return _writechecksum()
+def ForwardBackwardM1(address,val):
+	return _write1(address,Cmd.M17BIT,val)
 
-def ForwardMixed(val):
-	_sendcommand(128,Cmd.MIXEDFORWARD)
-	_writebyte(val)
-	return _writechecksum()
+def ForwardBackwardM2(address,val):
+	return _write1(address,Cmd.M27BIT,val)
 
-def BackwardMixed(val):
-	_sendcommand(128,Cmd.MIXEDBACKWARD)
-	_writebyte(val)
-	return _writechecksum()
+def ForwardMixed(address,val):
+	return _write1(address,Cmd.MIXEDFORWARD,val)
 
-def RightMixed(val):
-	_sendcommand(128,Cmd.MIXEDRIGHT)
-	_writebyte(val)
-	return _writechecksum()
+def BackwardMixed(address,val):
+	return _write1(address,Cmd.MIXEDBACKWARD,val)
 
-def LeftMixed(val):
-	_sendcommand(128,Cmd.MIXEDLEFT)
-	_writebyte(val)
-	return _writechecksum()
+def TurnRightMixed(address,val):
+	return _write1(address,Cmd.MIXEDRIGHT,val)
 
-def DriveMixed(val):
-	_sendcommand(128,Cmd.MIXEDFB)
-	_writebyte(val)
-	return _writechecksum()
+def TurnLeftMixed(address,val):
+	return _write1(address,Cmd.MIXEDLEFT,val)
 
-def TurnMixed(val):
-	_sendcommand(128,Cmd.MIXEDLR)
-	_writebyte(val)
-	return _writechecksum()
+def ForwardBackwardMixed(address,val):
+	return _write1(address,Cmd.MIXEDFB,val)
 
-def ReadM1Encoder():
-	return _read4_1(Cmd.GETM1ENC)
+def LeftRightMixed(address,val):
+	return _write1(address,Cmd.MIXEDLR,val)
 
-def ReadM2Encoder():
-	return _read4_1(Cmd.GETM2ENC)
+def ReadEncM1(address):
+	return _read4_1(address,Cmd.GETM1ENC)
 
-def ReadM1Speed():
-	return _read4_1(Cmd.GETM1SPEED)
+def ReadEncM2(address):
+	return _read4_1(address,Cmd.GETM2ENC)
 
-def ReadM2Speed():
-	return _read4_1(Cmd.GETM2SPEED)
+def ReadSpeedM1(address):
+	return _read4_1(address,Cmd.GETM1SPEED)
 
-def ResetEncoders():
-	_sendcommand(128,Cmd.RESETENC)
-	return _writechecksum()
+def ReadSpeedM2(address):
+	return _read4_1(address,Cmd.GETM2SPEED)
 
-def ReadVersion():
-	global _checksum
-	trys=2
+def ResetEncoders(address):
+	return _write0(address,Cmd.RESETENC)
+
+def ReadVersion(address):
+	global _crc
+	trys=_trystimeout
 	while 1:
-		_sendcommand(128,Cmd.GETVERSION)
+		port.flushInput()
+		_sendcommand(address,Cmd.GETVERSION)
 		str = ""
 		passed = True
 		for i in range(0,48):
 			data = port.read(1)
 			if len(data):
 				val = ord(data)
+				crc_update(val)
 				if(val==0):
 					break
-				_checksum+=val
 				str+=data[0]
 			else:
 				passed = False
 				break
 		if passed:
-			crc = _readchecksumbyte()
+			crc = _readchecksumword()
 			if crc[0]:
-				if(crc[1]&0x7F==_checksum&0x7F):
+				if _crc&0xFFFF==crc[1]&0xFFFF:
 					return (1,str)
 				else:
-					break
+					time.sleep(0.01)
 		trys-=1
 		if trys==0:
 			break
 	return (0,0)
 
-def SetM1EncoderCnt(cnt):
-	_sendcommand(128,Cmd.SETM1ENCCOUNT)
-	_writelong(cnt)
-	return _writechecksum()
+def SetEncM1(address,cnt):
+	return _write4(address,Cmd.SETM1ENCCOUNT,cnt)
 
-def SetM2EncoderCnt(cnt):
-	_sendcommand(128,Cmd.SETM2ENCCOUNT)
-	_writelong(cnt)
-	return _writechecksum()
+def SetEncM2(address,cnt):
+	return _write4(address,Cmd.SETM2ENCCOUNT,cnt)
 
-def ReadMainBattery():
-	return _read2(Cmd.GETMBATT)
+def ReadMainBatteryVoltage(address):
+	return _read2(address,Cmd.GETMBATT)
 
-def ReadLogicBattery():
-	return _read2(Cmd.GETLBATT)
+def ReadLogicBatteryVoltage(address,):
+	return _read2(address,Cmd.GETLBATT)
 
-def SetM1VelocityConstants(p,i,d,qpps):
-	_sendcommand(128,Cmd.SETM1PID)
-	_writelong(d*65536)
-	_writelong(p*65536)
-	_writelong(i*65536)
-	_writelong(qpps)
-	return _writechecksum()
+def SetMinVoltageLogicBattery(address,val):
+	return _write1(address,Cmd.SETMINLB,val)
 
-def SetM2VelocityConstants(p,i,d,qpps):
-	_sendcommand(128,Cmd.SETM2PID)
-	_writelong(d*65536)
-	_writelong(p*65536)
-	_writelong(i*65536)
-	_writelong(qpps)
-	return _writechecksum()
+def SetMaxVoltageLogicBattery(address,val):
+	return _write1(address,Cmd.SETMAXLB,val)
 
-def ReadM1ISpeed():
-	return _read4_1(Cmd.GETM1ISPEED)
+def SetM1VelocityPID(address,p,i,d,qpps):
+	return _write4444(address,Cmd.SETM1PID,long(d*65536),long(p*65536),long(i*65536),qpps)
 
-def ReadM2ISpeed():
-	return _read4_1(Cmd.GETM2ISPEED)
+def SetM2VelocityPID(address,p,i,d,qpps):
+	return _write4444(address,Cmd.SETM2PID,long(d*65536),long(p*65536),long(i*65536),qpps)
 
-def SetM1Duty(val):
-	_sendcommand(128,Cmd.M1DUTY)
-	_writesword(val)
-	return _writechecksum()
+def ReadISpeedM1(address):
+	return _read4_1(address,Cmd.GETM1ISPEED)
 
-def SetM2Duty(val):
-	_sendcommand(128,Cmd.M2DUTY)
-	_writesword(val)
-	return _writechecksum()
+def ReadISpeedM2(address):
+	return _read4_1(address,Cmd.GETM2ISPEED)
 
-def SetMixedDuty(m1,m2):
-	_sendcommand(128,Cmd.MIXEDDUTY)
-	_writesword(m1)
-	_writesword(m2)
-	return _writechecksum()
+def DutyM1(address,val):
+	return _simplFunctionS2(address,Cmd.M1DUTY,val)
 
-def SetM1Speed(val):
-	_sendcommand(128,Cmd.M1SPEED)
-	_writeslong(val)
-	return _writechecksum()
+def DutyM2(address,val):
+	return _simplFunctionS2(address,Cmd.M2DUTY,val)
 
-def SetM2Speed(val):
-	_sendcommand(128,Cmd.M2SPEED)
-	_writeslong(val)
-	return _writechecksum()
+def DutyM1M2(address,m1,m2):
+	return _writeS2S2(address,Cmd.MIXEDDUTY,m1,m2)
 
-def SetMixedSpeed(m1,m2):
-	_sendcommand(128,Cmd.MIXEDSPEED)
-	_writeslong(m1)
-	_writeslong(m2)
-	return _writechecksum();
+def SpeedM1(address,val):
+	return _writeS4(address,Cmd.M1SPEED,val)
 
-def SetM1SpeedAccel(accel,speed):
-	_sendcommand(128,Cmd.M1SPEEDACCEL)
-	_writelong(accel)
-	_writeslong(speed)
-	return _writechecksum()
+def SpeedM2(address,val):
+	return _writeS4(address,Cmd.M2SPEED,val)
 
-def SetM2SpeedAccel(accel,speed):
-	_sendcommand(128,Cmd.M2SPEEDACCEL)
-	_writelong(accel)
-	_writeslong(speed)
-	return _writechecksum()
+def SpeedM1M2(address,m1,m2):
+	return _writeS4S4(address,Cmd.MIXEDSPEED,m1,m2)
 
-def SetMixedSpeedAccel(accel,speed1,speed2):
-	_sendcommand(128,Cmd.MIXEDSPEED2ACCEL)
-	_writelong(accel)
-	_writeslong(speed1)
-	_writeslong(speed2)
-	return _writechecksum();
+def SpeedAccelM1(address,accel,speed):
+	return _write4S4(address,Cmd.M1SPEEDACCEL,accel,speed)
 
-def SetM1SpeedDistance(speed,distance,buffer):
-	_sendcommand(128,Cmd.M1SPEEDDIST)
-	_writeslong(speed)
-	_writelong(distance)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedAccelM2(address,accel,speed):
+	return _write4S4(address,Cmd.M2SPEEDACCEL,accel,speed)
 
-def SetM2SpeedDistance(speed,distance,buffer):
-	_sendcommand(128,Cmd.M2SPEEDDIST)
-	_writeslong(speed)
-	_writelong(distance)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedAccelM1M2(address,accel,speed1,speed2):
+	return _write4S4S4(address,Cmd.M1SPEEDACCEL,accel,speed1,speed2)
 
-def SetMixedSpeedDistance(speed1,distance1,speed2,distance2,buffer):
-	_sendcommand(128,Cmd.MIXEDSPEEDDIST)
-	_writeslong(speed1)
-	_writelong(distance1)
-	_writeslong(speed2)
-	_writelong(distance2)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedDistanceM1(address,speed,distance,buffer):
+	return _writeS441(address,Cmd.M1SPEEDDIST,speed,distance,buffer)
 
-def SetM1SpeedAccelDistance(accel,speed,distance,buffer):
-	_sendcommand(128,Cmd.M1SPEEDACCELDIST)
-	_writelong(accel)
-	_writeslong(speed)
-	_writelong(distance)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedDistanceM2(address,speed,distance,buffer):
+	return _writeS441(address,Cmd.M2SPEEDDIST,speed,distance,buffer)
 
-def SetM2SpeedAccelDistance(accel,speed,distance,buffer):
-	_sendcommand(128,Cmd.M2SPEEDACCELDIST)
-	_writelong(accel)
-	_writeslong(speed)
-	_writelong(distance)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedDistanceM1M2(address,speed1,distance1,speed2,distance2,buffer):
+	return _writeS44S441(address,Cmd.MIXEDSPEEDDIST,speed1,distance1,speed2,distance2,buffer)
 
-def SetMixedSpeedAccelDistance(accel,speed1,distance1,speed2,distance2,buffer):
-	_sendcommand(128,Cmd.MIXEDSPEED2ACCELDIST)
-	_writelong(accel)
-	_writeslong(speed1)
-	_writelong(distance1)
-	_writeslong(speed2)
-	_writelong(distance2)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedAccelDistanceM1(address,accel,speed,distance,buffer):
+	return _write4S441(address,Cmd.M1SPEEDACCELDIST,accel,speed,distance,buffer)
 
-def ReadBuffers():
-	val = _read2(Cmd.GETBUFFERS)
+def SpeedAccelDistanceM2(address,accel,speed,distance,buffer):
+	return _write4S441(address,Cmd.M2SPEEDACCELDIST,accel,speed,distance,buffer)
+
+def SpeedAccelDistanceM1M2(address,accel,speed1,distance1,speed2,distance2,buffer):
+	return _write4S44S441(address,Cmd.MIXEDSPEED2ACCELDIST,accel,speed1,distance1,speed2,distance2,buffer)
+
+def ReadBuffers(address):
+	val = _read2(address,Cmd.GETBUFFERS)
 	if val[0]:
 		return (1,val[1]>>8,val[1]&0xFF)
 	return (0,0,0)
 
-def ReadPWMs():
-	val = _read4(Cmd.GETPWMS)
+def ReadPWMs(address):
+	val = _read4(address,Cmd.GETPWMS)
 	if val[0]:
-		cur1 = val[1]>>16
-		cur2 = val[1]&0xFFFF
+		pwm1 = val[1]>>16
+		pwm2 = val[1]&0xFFFF
 		if pwm1&0x8000:
 			pwm1-=0x10000
 		if pwm2&0x8000:
@@ -556,8 +827,8 @@ def ReadPWMs():
 		return (1,pwm1,pwm2)
 	return (0,0,0)
 
-def ReadCurrents():
-	val = _read4(Cmd.GETCURRENTS)
+def ReadCurrents(address):
+	val = _read4(address,Cmd.GETCURRENTS)
 	if val[0]:
 		cur1 = val[1]>>16
 		cur2 = val[1]&0xFFFF
@@ -568,47 +839,23 @@ def ReadCurrents():
 		return (1,cur1,cur2)
 	return (0,0,0)
 
-def SetMixedSpeed2Accel(accel1,speed1,accel2,speed2):
-	_sendcommand(128,Cmd.MIXEDSPEED2ACCEL)
-	_writelong(accel1)
-	_writeslong(speed1)
-	_writelong(accel2)
-	_writeslong(speed2)
-	return _writechecksum()
+def SpeedAccelM1M2_2(address,accel1,speed1,accel2,speed2):
+	return _write4S44S4(address,Cmd.MIXEDSPEED2ACCEL,accel,speed1,accel2,speed2)
 
-def SetMixedSpeed2AccelDistance(accel1,speed1,distance1,accel2,speed2,distance2,buffer):
-	_sendcommand(128,Cmd.MIXEDSPEED2ACCELDIST)
-	_writelong(accel1)
-	_writeslong(speed1)
-	_writelong(distance1)
-	_writelong(accel2)
-	_writeslong(speed2)
-	_writelong(distance2)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedAccelDistanceM1M2_2(address,accel1,speed1,distance1,accel2,speed2,distance2,buffer):
+	return _write4S444S441(address,Cmd.MIXEDSPEED2ACCELDIST,accel1,speed1,distance1,accel2,speed2,distance2,buffer)
 
-def SetM1DutyAccel(accel,duty):
-	_sendcommand(128,Cmd.M1DUTYACCEL)
-	_writesword(duty)
-	_writelong(accel)
-	return _writechecksum()
+def DutyAccelM1(address,accel,duty):
+	return _writeS24(address,Cmd.M1DUTYACCEL,duty,accel)
 
-def SetM2DutyAccel(accel,duty):
-	_sendcommand(128,Cmd.M2DUTYACCEL)
-	_writesword(duty)
-	_writelong(accel)
-	return _writechecksum()
+def DutyAccelM2(address,accel,duty):
+	return _writeS24(address,Cmd.M2DUTYACCEL,duty,accel)
 
-def SetMixedDutyAccel(accel1,duty1,accel2,duty2):
-	_sendcommand(128,Cmd.MIXEDDUTYACCEL)
-	_writesword(duty1)
-	_writeword(accel1)
-	_writesword(duty2)
-	_writeword(accel2)
-	return _writechecksum()
+def DutyAccelM1M2(address,accel1,duty1,accel2,duty2):
+	return _writeS24S24(Cmd.MIXEDDUTYACCEL,duty1,accel1,duty2,accel2)
 	
-def ReadM1VelocityConstants():
-	data = _read_n(Cmd.READM1PID,4)
+def ReadM1VelocityPID(address):
+	data = _read_n(address,Cmd.READM1PID,4)
 	if data[0]:
 		data[1]/=65536.0
 		data[2]/=65536.0
@@ -616,8 +863,8 @@ def ReadM1VelocityConstants():
 		return data
 	return (0,0,0,0,0)
 
-def ReadM2VelocityConstants():
-	data = _read_n(Cmd.READM2PID,4)
+def ReadM2VelocityPID(address):
+	data = _read_n(address,Cmd.READM2PID,4)
 	if data[0]:
 		data[1]/=65536.0
 		data[2]/=65536.0
@@ -625,138 +872,84 @@ def ReadM2VelocityConstants():
 		return data
 	return (0,0,0,0,0)
 
-def SetMainVoltages(min, max):
-	_sendcommand(128,Cmd.SETMAINVOLTAGES)
-	_writeword(min)
-	_writeword(max)
-	return _writechecksum();
+def SetMainVoltages(address,min, max):
+	return _write22(address,Cmd.SETMAINVOLTAGES,min,max)
 	
-def SetLogicVoltages(min, max):
-	_sendcommand(128,Cmd.SETLOGICVOLTAGES)
-	_writeword(min)
-	_writeword(max)
-	return _writechecksum();
+def SetLogicVoltages(address,min, max):
+	return _write22(address,Cmd.SETLOGICVOLTAGES,min,max)
 	
-def ReadMainBatterySettings():
-	val = _read4(Cmd.GETMINMAXMAINVOLTAGES)
+def ReadMinMaxMainVoltages(address):
+	val = _read4(address,Cmd.GETMINMAXMAINVOLTAGES)
 	if val[0]:
 		min = val[1]>>16
 		max = val[1]&0xFFFF
 		return (1,min,max)
 	return (0,0,0)
 
-def ReadLogicBatterySettings():
-	val = _read4(Cmd.GETMINMAXLOGICVOLTAGES)
+def ReadMinMaxLogicVoltages(address):
+	val = _read4(address,Cmd.GETMINMAXLOGICVOLTAGES)
 	if val[0]:
 		min = val[1]>>16
 		max = val[1]&0xFFFF
 		return (1,min,max)
 	return (0,0,0)
 
-def SetM1PositionConstants(kp,ki,kd,kimax,deadzone,min,max):
-	_sendcommand(128,Cmd.SETM1POSPID)
-	_writelong(kd*1024)
-	_writelong(kp*1024)
-	_writelong(ki*1024)
-	_writelong(kimax*1024)
-	_writelong(deadzone)
-	_writelong(min)
-	_writelong(max)
-	return _writechecksum()
+def SetM1PositionPID(address,kp,ki,kd,kimax,deadzone,min,max):
+	return _write4444444(address,Cmd.SETM1POSPID,long(kd*1024),long(kp*1024),long(ki*1024),kimax,deadzone,min,max)
 
-def SetM2PositionConstants(kp,ki,kd,kimax,deadzone,min,max):
-	_sendcommand(128,Cmd.SETM2POSPID)
-	_writelong(kd*1024)
-	_writelong(kp*1024)
-	_writelong(ki*1024)
-	_writelong(kimax*1024)
-	_writelong(deadzone)
-	_writelong(min)
-	_writelong(max)
-	return _writechecksum()
+def SetM2PositionPID(address,kp,ki,kd,kimax,deadzone,min,max):
+	return _write4444444(address,Cmd.SETM2POSPID,long(kd*1024),long(kp*1024),long(ki*1024),kimax,deadzone,min,max)
 
-def ReadM1PositionConstants():
-	data = _read_n(Cmd.READM1POSPID,7)
+def ReadM1PositionPID(address):
+	data = _read_n(address,Cmd.READM1POSPID,7)
 	if data[0]:
 		data[0]/=1024.0
 		data[1]/=1024.0
 		data[2]/=1024.0
-		data[3]/=1024.0
 		return data
 	return (0,0,0,0,0,0,0,0)
 	
-def ReadM2PositionConstants():
-	data = _read_n(Cmd.READM2POSPID,7)
+def ReadM2PositionPID(address):
+	data = _read_n(address,Cmd.READM2POSPID,7)
 	if data[0]:
 		data[0]/=1024.0
 		data[1]/=1024.0
 		data[2]/=1024.0
-		data[3]/=1024.0
 		return data
 	return (0,0,0,0,0,0,0,0)
 
-def SetM1SpeedAccelDeccelPosition(accel,speed,deccel,position,buffer):
-	_sendcommand(128,Cmd.M1SPEEDACCELDECCELPOS)
-	_writelong(accel)
-	_writelong(speed)
-	_writelong(deccel)
-	_writelong(position)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedAccelDeccelPositionM1(address,accel,speed,deccel,position,buffer):
+	return _write44441(address,Cmd.M1SPEEDACCELDECCELPOS,accel,speed,deccel,position,buffer)
 
-def SetM2SpeedAccelDeccelPosition(accel,speed,deccel,position,buffer):
-	_sendcommand(128,Cmd.M2SPEEDACCELDECCELPOS)
-	_writelong(accel)
-	_writelong(speed)
-	_writelong(deccel)
-	_writelong(position)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedAccelDeccelPositionM2(address,accel,speed,deccel,position,buffer):
+	return _write44441(address,Cmd.M2SPEEDACCELDECCELPOS,accel,speed,deccel,position,buffer)
 
-def SetMixedSpeedAccelDeccelPosition(accel1,speed1,deccel1,position1,accel2,speed2,deccel2,position2,buffer):
-	_sendcommand(128,Cmd.MIXEDSPEEDACCELDECCELPOS)
-	_writelong(accel1)
-	_writelong(speed1)
-	_writelong(deccel1)
-	_writelong(position1)
-	_writelong(accel2)
-	_writelong(speed2)
-	_writelong(deccel2)
-	_writelong(position2)
-	_writebyte(buffer)
-	return _writechecksum()
+def SpeedAccelDeccelPositionM1M2(address,accel1,speed1,deccel1,position1,accel2,speed2,deccel2,position2,buffer):
+	return _write444444441(address,Cmd.MIXEDSPEEDACCELDECCELPOS,accel1,speed1,deccel1,position1,accel2,speed2,deccel2,position2,buffer)
 
-def SetM1DefaultAccel(accel):
-	_sendcommand(128,Cmd.SETM1DEFAULTACCEL)
-	_writelong(accel)
-	return _writechecksum()
+def SetM1DefaultAccel(address,accel):
+	return _write4(address,Cmd.SETM1DEFAULTACCEL,accel)
 
-def SetM2DefaultAccel(accel):
-	_sendcommand(128,Cmd.SETM2DEFAULTACCEL)
-	_writelong(accel)
-	return _writechecksum()
+def SetM2DefaultAccel(address,accel):
+	return _write4(address,Cmd.SETM2DEFAULTACCEL,accel)
 
-def SetPinFunctions(S3mode,S4mode,S5mode):
-	_sendcommand(128,Cmd.SETPINFUNCTIONS)
-	_writebyte(S3mode)
-	_writebyte(S4mode)
-	_writebyte(S5mode)
-	return _writechecksum()
+def SetPinFunctions(address,S3mode,S4mode,S5mode):
+	return _write111(address,Cmd.SETPINFUNCTIONS,S3mode,S4mode,S5mode)
 
-def ReadPinFunctions():
-	global _checksum
-	trys = 2
+def ReadPinFunctions(address):
+	global _crc
+	trys = _trystimeout
 	while 1:
-		_sendcommand(128,Cmd.GETPINFUNCTIONS)
+		_sendcommand(address,Cmd.GETPINFUNCTIONS)
 		val1 = _readbyte()
 		if val1[0]:
 			val2 = _readbyte()
 			if val1[0]:
 				val3 = _readbyte()
 				if val1[0]:
-					crc = _readchecksumbyte()
+					crc = _readchecksumword()
 					if crc[0]:
-						if _checksum&0x7F!=crc[1]&0x7F:
+						if _crc&0xFFFF!=crc[1]&0xFFFF:
 							return (0,0)
 						return (1,val1[1],val2[1],val3[1])
 		trys-=1
@@ -764,92 +957,83 @@ def ReadPinFunctions():
 			break
 	return (0,0)
 
-#Warning(TTL Serial): Baudrate will change if not already set to 38400.  Communications will be lost
-def RestoreDefaults():
-	_sendcommand(128,Cmd.RESTOREDEFAULTS)
-	return _writechecksum()
+def SetDeadBand(address,min,max):
+	return _write111(address,Cmd.SETDEADBAND,min,max)
 
-def ReadTemperature():
-	return _read2(Cmd.GETTEMP)
-
-def ReadTemperature2():
-	return _read2(Cmd.GETTEMP2)
-
-def ReadStatus():
-	return _read2(Cmd.GETERROR)
-
-def ReadEncoderModes():
-	val = _read2(Cmd.GETENCODERMODE)
+def GetDeadBand(address):
+	val = _read2(address,Cmd.GETDEADBAND)
 	if val[0]:
 		return (1,val[1]>>8,val[1]&0xFF)
 	return (0,0,0)
 	
-def SetM1EncoderMode(mode):
-	_sendcommand(128,Cmd.SETM1ENCODERMODE)
-	_writebyte(mode)
-	return _writechecksum()
+#Warning(TTL Serial): Baudrate will change if not already set to 38400.  Communications will be lost
+def RestoreDefaults(address):
+	return _write0(address,Cmd.RESTOREDEFAULTS)
 
-def SetM2EncoderMode(mode):
-	_sendcommand(128,Cmd.SETM2ENCODERMODE)
-	_writebyte(mode)
-	return _writechecksum()
+def ReadTemp(address):
+	return _read2(address,Cmd.GETTEMP)
+
+def ReadTemp2(address):
+	return _read2(address,Cmd.GETTEMP2)
+
+def ReadError(address):
+	return _read2(address,Cmd.GETERROR)
+
+def ReadEncoderModes(address):
+	val = _read2(address,Cmd.GETENCODERMODE)
+	if val[0]:
+		return (1,val[1]>>8,val[1]&0xFF)
+	return (0,0,0)
+	
+def SetM1EncoderMode(address,mode):
+	return _write1(address,Cmd.SETM1ENCODERMODE,mode)
+
+def SetM2EncoderMode(address,mode):
+	return _write1(address,Cmd.SETM2ENCODERMODE,mode)
 
 #saves active settings to NVM
-def WriteNVM():
-	_sendcommand(128,Cmd.WRITENVM)
-	_writelong(0xE22EAB7A)
-	return _writechecksum()
+def WriteNVM(address):
+	return _write4(address,Cmd.WRITENVM,0xE22EAB7A)
 
 #restores settings from NVM
 #Warning(TTL Serial): If baudrate changes or the control mode changes communications will be lost
-def ReadNVM():
-	_sendcommand(128,Cmd.READNVM)
-	return _writechecksum()
+def ReadNVM(address):
+	return _write0(address,Cmd.READNVM)
 
 #Warning(TTL Serial): If control mode is changed from packet serial mode when setting config communications will be lost!
 #Warning(TTL Serial): If baudrate of packet serial mode is changed communications will be lost!
-def SetConfig(config):
-	_sendcommand(128,Cmd.SETCONFIG)
-	_writeword(config)
-	return _writechecksum()
+def SetConfig(address,config):
+	return _write2(address,Cmd.SETCONFIG,config)
 
-def ReadConfig():
-	return _read2(Cmd.GETCONFIG)
+def GetConfig(address):
+	return _read2(address,Cmd.GETCONFIG)
 
-def SetM1MaxCurrent(max):
-	_sendcommand(128,Cmd.SETM1MAXCURRENT)
-	_writelong(max)
-	_writelong(0)
-	return _writechecksum()
+def SetM1MaxCurrent(address,max):
+	return _write44(address,Cmd.SETM1MAXCURRENT,max,0)
 
-def SetM2MaxCurrent(max):
-	_sendcommand(128,Cmd.SETM2MAXCURRENT)
-	_writelong(max)
-	_writelong(0)
-	return _writechecksum()
+def SetM2MaxCurrent(address,max):
+	return _write44(address,Cmd.SETM2MAXCURRENT,max,0)
 
-def ReadM1MaxCurrent():
-	data = _read_n(Cmd.GETM1MAXCURRENT,2)
+def ReadM1MaxCurrent(address):
+	data = _read_n(address,Cmd.GETM1MAXCURRENT,2)
 	if data[0]:
 		return (1,data[1])
 	return (0,0)
 
-def ReadM2MaxCurrent():
-	data = _read_n(Cmd.GETM2MAXCURRENT,2)
+def ReadM2MaxCurrent(address):
+	data = _read_n(address,Cmd.GETM2MAXCURRENT,2)
 	if data[0]:
 		return (1,data[1])
 	return (0,0)
 
-def SetPWMMode(mode):
-	_sendcommand(128,Cmd.SETPWMMODE)
-	_writebyte(mode)
-	return _writechecksum()
+def SetPWMMode(address,mode):
+	return _write1(address,Cmd.SETPWMMODE,mode)
 
-def ReadPWMMode():
-	return _read1(Cmd.GETPWMMODE)
+def ReadPWMMode(address):
+	return _read1(address,Cmd.GETPWMMODE)
 
 def Open(comport, rate):
 	global port
-	port = serial.Serial(comport, baudrate=rate, timeout=1, interCharTimeout=0.01)
+	port = serial.Serial(comport, baudrate=rate, timeout=0.1, interCharTimeout=0.01)
 	return
 
