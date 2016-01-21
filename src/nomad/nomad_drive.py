@@ -9,19 +9,25 @@ from nomad.srv import RoboclawDiagnostics, RoboclawDiagnosticsResponse
 roboclaw.Open("/dev/ttyACM0",115200)
 
 def drive_wheels(msg):
-	t = msg
-	x = t.linear.x
-	z = t.angular.z
+	x = msg.linear.x
+	z = msg.angular.z
 
-	r = (x-z)/2
-	l = (x+z)/2
+	#127 is max speed
+	m1 = int((x-z)*127)
+	m2 = int((x+z)*127)
 
-	m2 = (l * 64) + 64
-	m1 = (r * 64) + 64
+	print str(m1) + " " + str(m2)		
+	
+	if m1 > 0:
+		roboclaw.ForwardM1(0x80, m1)
+	else: 
+		roboclaw.BackwardM1(0x80, m1)
 
-	print str(m1) + " " + str(m2)
-	roboclaw.ForwardM1(0x80, int(m1))
-	roboclaw.ForwardM2(0x80, int(m2))
+	if m2 > 0:
+		roboclaw.ForwardM2(0x80, m2)
+	else: 
+		roboclaw.BackwardM2(0x80, m2)
+
 
 def get_diag_info(input_string):
 	command = input_string.input
@@ -113,6 +119,13 @@ def get_diag_info(input_string):
 			returnmessage += "Error Code:" + repr(status[1]) + "\n"
 
 	return returnmessage
+
+
+status = roboclaw.SetMainVoltages(0x80, 0x64, 0xa0)
+if status==False:
+	print "SetMainVoltages Failed"
+else:
+	print "SetMainVoltages Success"
 
 
 rospy.init_node('barb_drive')
