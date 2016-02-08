@@ -1,0 +1,7 @@
+/home/ubuntu/Nomad/external_src/raspicam-0.1.3/build/src/CMakeFiles/raspicam.dir
+/home/ubuntu/Nomad/external_src/raspicam-0.1.3/build/src/CMakeFiles/raspicam_cv.dir
+/home/ubuntu/Nomad/external_src/raspicam-0.1.3/build/utils/CMakeFiles/raspicam_cv_still_test.dir
+/home/ubuntu/Nomad/external_src/raspicam-0.1.3/build/utils/CMakeFiles/raspicam_cv_test.dir
+/home/ubuntu/Nomad/external_src/raspicam-0.1.3/build/utils/CMakeFiles/raspicam_still_test.dir
+/home/ubuntu/Nomad/external_src/raspicam-0.1.3/build/utils/CMakeFiles/raspicam_test.dir
+/home/ubuntu/Nomad/external_src/raspicam-0.1.3/build/CMakeFiles/uninstall.dir
