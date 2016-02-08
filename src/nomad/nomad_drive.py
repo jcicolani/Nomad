@@ -21,12 +21,12 @@ def drive_wheels(msg):
 	if m1 > 0:
 		roboclaw.ForwardM1(0x80, m1)
 	else: 
-		roboclaw.BackwardM1(0x80, m1)
+		roboclaw.BackwardM1(0x80, abs(m1))
 
 	if m2 > 0:
 		roboclaw.ForwardM2(0x80, m2)
 	else: 
-		roboclaw.BackwardM2(0x80, m2)
+		roboclaw.BackwardM2(0x80, abs(m2))
 
 
 def get_diag_info(input_string):
